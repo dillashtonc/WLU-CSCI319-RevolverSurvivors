@@ -6,14 +6,14 @@ Image Credits
 
 Gunslinger
 
-Created by Tobias Kamber
-Source: https://opengameart.org/content/cowboy
+Created by Tobias Kamber \
+Source: https://opengameart.org/content/cowboy \
 Tobias's website: https://software-atelier.ch/
 
 
 Desert Background
 
-Created by ShippuKirifuda
+Created by ShippuKirifuda \
 Source: https://www.newgrounds.com/art/view/shippukirifuda/wip-top-down-desert
 
 
