@@ -4,7 +4,7 @@ from . import Mobile
 ## # removed Acceleration, will need to add new FSMs
 from FSMs import WalkingFSM, SteadyFSM, AutoWalkFSM
 from utils import vec, RESOLUTION, SpriteManager
-from . import Drawable
+from . import Drawable, Animated
 
 from pygame.locals import *
 
@@ -20,15 +20,13 @@ class Gunslinger(Mobile):
       startPos = vec(RESOLUTION[0] / 2 - 15, RESOLUTION[1] / 2 - 19)
       super().__init__(startPos, "Gunslinger3.png")
 
-##      # This code is potetially good reference for the guns
-##      self.hatOffset = vec(-3,-6)
-##      self.hat = Drawable(position, "hat.png")
-##      self.hat.image = pygame.transform.flip(self.hat.image, True, False)
-
       # Gun attributes
-      self.gun = Drawable(position=self.position, fileName="hat.png")
+      #self.gun = Drawable(position=self.position, fileName="hat.png")
+      self.gun = Animated(position=self.position, fileName="gunsheet.png")
       self.gun_offset_x = 40  # Adjust as needed 55
       self.gun_offset_y = 20  # Adjust as needed 30
+      self.current_quadrant = "lower left"
+      self.flip = False
       
         
 ##    # Animation variables specific to Gunslinger
@@ -54,9 +52,12 @@ class Gunslinger(Mobile):
       
       self.LR = SteadyFSM(self, axis=0)
       self.UD = SteadyFSM(self, axis=1)
-      self.steadyFSM = SteadyFSM(self)
+      self.steadyFSMX = SteadyFSM(self)
+      self.steadyFSMY = SteadyFSM(self, axis = 1)
       self.autowalkFSM = AutoWalkFSM(self)
-      self.currentFSM = self.steadyFSM
+      self.currentFSMX = self.steadyFSMX
+      self.currentFSMY = self.steadyFSMY
+      self.auto = False
       
    def handleEvent(self, event):
 
@@ -78,54 +79,31 @@ class Gunslinger(Mobile):
             angle = np.arctan2(-vertical_axis_value, horizontal_axis_value)
             self.gun.angle = np.degrees(angle)
 
-         # old aiming code
-##         if event.axis == 3:  # Vertical movement
-##       # Calculate the angle between the neutral position and the current position of the analog stick
-##            vertical_angle = np.arctan2(event.value, 1.0)
-##            self.gun.angle = np.degrees(vertical_angle)
-##                
-##         elif event.axis == 2:  # Horizontal movement
-##    # Calculate the angle between the neutral position and the current position of the analog stick
-##            horizontal_angle = np.arctan2(event.value, 1.0)
-##            self.gun.angle = np.degrees(horizontal_angle)
-
-
-         
-##         if event.axis == 2:  # Vertical movement
-##                # Adjust gun angle based on joystick input
-##                self.gun.angle += event.value * self.GUN_ROTATION_SPEED_VERTICAL
-##                
-##         elif event.axis == 3:  # Horizontal movement
-##                # Adjust gun angle based on joystick input
-##                self.gun.angle += event.value * self.GUN_ROTATION_SPEED_HORIZONTAL
-
          # movement
+         # note: removed lines like self.currentFSMY.stop_increase() to prevent halting
+         # behavior
          
          # up
          if event.axis == 1 and event.value < -0.1:
-            self.UD.stop_increase()
-            self.UD.decrease()
+            self.currentFSMY.decrease()
 
          # down
          elif event.axis == 1 and event.value > 0.1:
-            self.UD.stop_decrease()
-            self.UD.increase()
+            self.currentFSMY.increase()
 
          elif event.axis == 1:
-            self.UD.stop_all()
+            self.currentFSMY.stop_all()
 
          # left
          elif event.axis == 0 and event.value < -0.1:
-            self.LR.stop_increase()
-            self.LR.decrease()
+            self.currentFSMX.decrease()
 
          # right
          elif event.axis == 0 and event.value > 0.1:
-            self.LR.stop_decrease()
-            self.LR.increase()
+            self.currentFSMX.increase()
 
          elif event.axis == 0:
-            self.LR.stop_all()
+            self.currentFSMX.stop_all()
 
       if event.type == JOYBUTTONDOWN:
         # cycle between Steady and AutoWalk FSMs using right shoulder button
@@ -135,50 +113,90 @@ class Gunslinger(Mobile):
       # keyboard controls
       if event.type == KEYDOWN:
          if event.key == K_UP:
-            self.UD.decrease()
+            self.currentFSMY.decrease()
              
          elif event.key == K_DOWN:
-            self.UD.increase()
+            self.currentFSMY.increase()
             
          elif event.key == K_LEFT:
-            self.LR.decrease()
+            self.currentFSMX.decrease()
             
          elif event.key == K_RIGHT:
-            self.LR.increase()
+            self.currentFSMX.increase()
             
       elif event.type == KEYUP:
          if event.key == K_UP:
-            self.UD.stop_decrease()
+            self.currentFSMY.stop_decrease()
              
          elif event.key == K_DOWN:
-            self.UD.stop_increase()
+            self.currentFSMY.stop_increase()
              
             
          elif event.key == K_LEFT:
-            self.LR.stop_decrease()
+            self.currentFSMX.stop_decrease()
             
          elif event.key == K_RIGHT:
-            self.LR.stop_increase()
+            self.currentFSMX.stop_increase()
 
    def toggleFSM(self):
     # switch between Steady and AutoWalk FSMs
-      if self.currentFSM == self.steadyFSM:
-         self.currentFSM = self.autowalkFSM
+      if self.auto == False:
+         self.auto = True
          print("switching to auto")
       else:
-         self.currentFSM = self.steadyFSM
+         self.auto = False
          print("switching to steady")
    
    def update(self, seconds): 
-      self.currentFSM.update(seconds)
-      self.LR.update(seconds)
-      self.UD.update(seconds)
+      # get rid of LR and UD
+      if self.auto == False:
+         self.currentFSMX.update(seconds)
+         self.currentFSMY.update(seconds)
+      else:
+         self.autowalkFSM.update(seconds)
+      #self.LR.update(seconds)
+      #self.UD.update(seconds)
 
       super().update(seconds)
 
       gun_offset = vec(self.gun_offset_x, self.gun_offset_y)
       rotated_offset = self.rotateVector(gun_offset, self.gun.angle)
       self.gun.position = self.position + rotated_offset
+
+      # Determine the quadrant based on gun position
+      if self.gun.position[0] < self.position[0]:
+         if self.gun.position[1] < self.position[1]:
+            quadrant = "upper left"
+            self.gun.row = 1
+            if self.flip == True:
+               self.gun.image = pygame.transform.flip(self.gun.image, True, False)
+               self.flip = False
+         else:
+            quadrant = "lower left"
+            self.gun.row = 0
+            if self.flip == True:
+               self.gun.image = pygame.transform.flip(self.gun.image, True, False)
+               self.flip = False
+      else:
+         if self.gun.position[1] < self.position[1]:
+            quadrant = "upper right"
+            print("switch row")
+            self.gun.row = 1
+            if self.flip == False:
+               self.gun.image = pygame.transform.flip(self.gun.image, True, False)
+               self.flip = True
+         else:
+            quadrant = "lower right"
+            self.gun.row = 0
+            if self.flip == False:
+               self.gun.image = pygame.transform.flip(self.gun.image, True, False)
+               self.flip = True
+
+      # Print a message when the gun enters a new quadrant
+      if quadrant != self.current_quadrant:
+         print("Gun entered", quadrant, "quadrant")
+         self.current_quadrant = quadrant
+
 
    def draw(self, drawSurface):
       super().draw(drawSurface)

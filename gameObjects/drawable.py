@@ -31,15 +31,17 @@ class Drawable(object):
         
         return newPos
     
-    def __init__(self, position=vec(0,0), fileName="", offset=None):
+    def __init__(self, position=vec(0,0), fileName="", offset=None, parallax=1):
         if fileName != "":
             self.original = SpriteManager.getInstance().getSprite(fileName, offset)
             self.image = self.original.copy()
         
         self.position  = vec(*position)
         self.imageName = fileName
+        self.parallax = parallax
         self.rotate = False
         self.angle = 0
+        self.flipImage = [False, False]
 
     def setDrawPosition(self):
         if self.rotate:
@@ -53,7 +55,15 @@ class Drawable(object):
     
     def draw(self, drawSurface):
         self.setDrawPosition()
-        drawSurface.blit(self.image, list(map(int, self.drawPosition)))
+        blitImage = self.image
+
+        # flip
+        if self.flipImage[0] or self.flipImage[1]:
+            blitImage = pygame.transform.flip(self.image, *self.flipImage)
+        
+        drawSurface.blit(blitImage,
+                         list(map(int,
+                                  self.drawPosition - Drawable.CAMERA_OFFSET * self.parallax)))
             
     def getSize(self):
         return vec(*self.image.get_size())

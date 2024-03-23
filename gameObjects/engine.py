@@ -1,7 +1,7 @@
 import pygame
 import random
 from pygame.locals import USEREVENT
-from . import Drawable, Gunslinger, Enemy
+from . import Drawable, Gunslinger, Enemy, SoundManager
 from utils import vec, normalize, RESOLUTION, UPSCALED
 from utils.enemyManager import EnemyManager
 
@@ -28,6 +28,8 @@ class GameEngine(object):
             enemy.draw(drawSurface)
             
     def handleEvent(self, event):
+        sm = SoundManager.getInstance()
+        sm.playBGM("Arroz Con Pollo.mp3")
         self.gunslinger.handleEvent(event)
 
         if event.type == USEREVENT + 1:

@@ -1,4 +1,7 @@
 class EnemyManager:
+
+# change to singleton, use getInstance
+    
     def __init__(self):
         self.enemies = []
 

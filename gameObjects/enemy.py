@@ -4,7 +4,6 @@ from . import Drawable
 class Enemy(Drawable):
     def __init__(self, position):
         super().__init__(position, "hat.png")
-        print("enemy spawned")
     
     def handleEvent(self, event):
         pass

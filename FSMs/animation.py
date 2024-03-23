@@ -14,6 +14,7 @@ class AnimateFSM(AbstractGameFSM):
             self.obj.row = self.obj.rowList[state]
             self.obj.framesPerSecond = self.obj.framesPerSecondList[state]
             self.obj.animationTimer = 0
+            # copy this line instead of changing row
             self.obj.image = SpriteManager.getInstance().getSprite(self.obj.imageName,
                                                                    (self.obj.frame, self.obj.row))
          

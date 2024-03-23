@@ -17,3 +17,9 @@ Created by ShippuKirifuda \
 Source: https://www.newgrounds.com/art/view/shippukirifuda/wip-top-down-desert
 
 
+Music and Sound Effect Credits
+----------------------------------------------------------------
+
+Background music: Arroz Con Pollo \
+Created by Kevin MacLeod \
+Source: https://incompetech.com/music/royalty-free/music.html
